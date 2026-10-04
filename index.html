@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>오늘의 컨디션</title>
+<meta name="theme-color" content="#0d9488">
+<meta name="mobile-web-app-capable" content="yes">
+<style>
+  :root{
+    --bg:#f0fdfa; --card:#ffffff; --text:#134e4a; --muted:#5f8f8a;
+    --accent:#0d9488; --accent-dark:#0f766e; --accent-ink:#ffffff;
+    --border:#d7ebe6; --radius:16px; --shadow:0 2px 12px rgba(13,148,136,.08);
+    --warn:#dc2626;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#042f2e; --card:#0b3b39; --text:#f0fdfa; --muted:#8fc7c0;
+      --accent:#2dd4bf; --accent-dark:#14b8a6; --accent-ink:#042f2e;
+      --border:#155e59; --shadow:0 2px 12px rgba(0,0,0,.4);
+    }
+  }
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  body{
+    margin:0; font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Noto Sans KR","Malgun Gothic",sans-serif;
+    background:var(--bg); color:var(--text); line-height:1.5; font-size:16px;
+  }
+  .wrap{max-width:480px; margin:0 auto; padding:20px 16px 110px;}
+  header.top{margin:6px 2px 16px;}
+  header.top h1{font-size:24px; margin:0 0 4px; letter-spacing:-.5px;}
+  header.top p{margin:0; color:var(--muted); font-size:14px;}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:16px; margin-bottom:14px;}
+  .card h2{font-size:16px; margin:0 0 10px;}
+  .btn{
+    display:block; width:100%; border:none; cursor:pointer; font-size:17px; font-weight:700;
+    padding:16px; border-radius:var(--radius); background:var(--accent); color:var(--accent-ink); margin:10px 0;
+  }
+  .btn:active{transform:scale(.98); background:var(--accent-dark);}
+  .btn.secondary{background:transparent; color:var(--accent); border:2px solid var(--accent);}
+  .btn.small{font-size:14px; padding:10px 14px; width:auto; display:inline-block; margin:4px 6px 4px 0;}
+  .btn.danger{background:transparent; color:var(--warn); border:2px solid var(--warn);}
+  .chips{display:flex; flex-wrap:wrap; gap:8px; margin:8px 0;}
+  .chip{
+    border:1.5px solid var(--border); background:var(--card); color:var(--text);
+    border-radius:999px; padding:10px 15px; font-size:15px; cursor:pointer;
+  }
+  .chip.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700;}
+  .field{margin:14px 0;}
+  .field > label{display:block; font-size:14px; font-weight:700; margin-bottom:8px;}
+  .field input[type=text], .field input[type=number], .field input[type=date], .field textarea{
+    font-size:16px; padding:12px; border-radius:12px; color:var(--text);
+    border:1.5px solid var(--border); background:var(--card); font-family:inherit;
+  }
+  .field input[type=date]{width:100%;}
+  .field textarea{width:100%; resize:vertical; min-height:64px;}
+  .numrow{display:flex; gap:8px; align-items:center;}
+  .numrow input{width:76px; text-align:center;}
+  .numrow .unit{color:var(--muted); font-size:14px; margin-right:6px;}
+  .seg{display:flex; gap:8px;}
+  .seg button{
+    flex:1; padding:13px 4px; font-size:15px; border-radius:12px; cursor:pointer;
+    border:1.5px solid var(--border); background:var(--card); color:var(--text);
+  }
+  .seg button.on{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700;}
+  .faces{display:flex; gap:6px; justify-content:space-between;}
+  .faces button{
+    flex:1; border:1.5px solid var(--border); background:var(--card); border-radius:12px;
+    padding:10px 2px; cursor:pointer; font-size:22px; color:var(--text);
+  }
+  .faces button small{display:block; font-size:11px; margin-top:2px; color:var(--muted);}
+  .faces button.on{border-color:var(--accent); background:var(--accent); color:var(--accent-ink);}
+  .faces button.on small{color:var(--accent-ink);}
+  .stepper{display:flex; align-items:center; gap:14px;}
+  .stepper button{
+    width:48px; height:48px; font-size:24px; border-radius:50%; border:1.5px solid var(--border);
+    background:var(--card); color:var(--text); cursor:pointer;
+  }
+  .stepper .val{font-size:22px; font-weight:800; min-width:90px; text-align:center;}
+  .rec{border:1px solid var(--border); border-radius:12px; padding:12px; margin-bottom:10px; background:var(--card); cursor:pointer;}
+  .rec .d{font-weight:700; font-size:15px;}
+  .rec .s{font-size:13px; color:var(--muted); margin-top:4px;}
+  .rec .med-ok{color:var(--accent); font-weight:700;}
+  .rec .med-no{color:var(--warn); font-weight:700;}
+  .bar{height:8px; background:var(--border); border-radius:99px; margin-top:6px; overflow:hidden;}
+  .bar > div{height:100%; background:var(--accent); border-radius:99px;}
+  .note{background:var(--bg); border:1px dashed var(--border); border-radius:12px; padding:12px; font-size:13px; color:var(--muted); margin:12px 0;}
+  .muted{color:var(--muted); font-size:14px;}
+  .empty{text-align:center; padding:28px 12px; color:var(--muted);}
+  nav.tabbar{
+    position:fixed; left:0; right:0; bottom:0; z-index:20;
+    background:var(--card); border-top:1px solid var(--border);
+    display:flex; max-width:480px; margin:0 auto;
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+  nav.tabbar button{
+    flex:1; background:none; border:none; cursor:pointer; padding:12px 4px 10px;
+    font-size:12px; color:var(--muted); display:flex; flex-direction:column; align-items:center; gap:2px;
+  }
+  nav.tabbar button .ic{font-size:20px;}
+  nav.tabbar button.on{color:var(--accent); font-weight:700;}
+  .hidden{display:none !important;}
+  #toast{position:fixed; left:50%; bottom:96px; transform:translateX(-50%) translateY(20px);
+    background:#134e4a; color:#f0fdfa; padding:12px 20px; border-radius:999px; font-size:15px;
+    opacity:0; transition:all .25s; z-index:70; pointer-events:none; max-width:90%; text-align:center;}
+  #toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+  @media (prefers-color-scheme: dark){ #toast{background:#f0fdfa; color:#134e4a;} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <h1>오늘의 컨디션</h1>
+    <p>매일 1분, 내 몸 기록하기</p>
+  </header>
+
+  <!-- 기록 -->
+  <section id="view-home">
+    <div class="card hidden" id="introCard">
+      <h2>처음 오셨네요 👋</h2>
+      <p class="muted" style="margin:0;">매일 저녁(또는 아침) 1분만 기록해 보세요. 혈압약 복용부터 수면, 증상까지 한 번에 정리됩니다. 기록은 이 폰에만 저장돼요.</p>
+    </div>
+
+    <div class="card">
+      <div class="field" style="margin-top:0;">
+        <label>날짜</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="field">
+        <label>혈압약 드셨어요?</label>
+        <div class="seg" id="medSeg">
+          <button data-v="yes">💊 먹었어요</button>
+          <button data-v="no">아직이요</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>혈압 (선택 — 재셨으면 적어주세요)</label>
+        <div class="numrow">
+          <input type="number" id="fSys" inputmode="numeric" placeholder="120"><span class="unit">/</span>
+          <input type="number" id="fDia" inputmode="numeric" placeholder="80"><span class="unit">mmHg</span>
+          <input type="number" id="fPulse" inputmode="numeric" placeholder="70" style="margin-left:8px;"><span class="unit">맥박</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>어젯밤 수면</h2>
+      <div class="field">
+        <label>몇 시간 주무셨어요?</label>
+        <div class="stepper">
+          <button id="sleepMinus" aria-label="줄이기">−</button>
+          <div class="val"><span id="sleepVal">6</span> 시간</div>
+          <button id="sleepPlus" aria-label="늘리기">＋</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>푹 주무셨어요?</label>
+        <div class="faces" id="sleepQ"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>오늘 증상 (해당되는 거 다 고르세요)</h2>
+      <div class="chips" id="symChips"></div>
+    </div>
+
+    <div class="card">
+      <h2>오늘 기분</h2>
+      <div class="faces" id="moodFaces"></div>
+    </div>
+
+    <div class="card">
+      <h2>오늘 활동</h2>
+      <div class="chips" id="actChips"></div>
+      <h2 style="margin-top:16px;">오늘의 가벼운 움직임 (무리하지 마세요)</h2>
+      <div class="chips" id="goalChips"></div>
+      <div class="note">어지러우면 바로 앉거나 누워서 쉬세요. 다 못해도 괜찮아요 — 한 가지만 해도 잘한 거예요.</div>
+    </div>
+
+    <div class="card">
+      <h2>메모 (선택)</h2>
+      <div class="field" style="margin:0;">
+        <textarea id="fNote" placeholder="예: 오후에 어지러웠다, 약 먹고 30분 누웠다"></textarea>
+      </div>
+    </div>
+
+    <button class="btn" id="btnSave">오늘 기록 저장</button>
+  </section>
+
+  <!-- 지난 기록 -->
+  <section id="view-records" class="hidden">
+    <div class="card">
+      <h2>지난 기록</h2>
+      <div id="recList"></div>
+    </div>
+  </section>
+
+  <!-- 주간 보기 -->
+  <section id="view-week" class="hidden">
+    <div class="card">
+      <h2>최근 7일 흐름</h2>
+      <p class="muted" style="margin-top:0;">진료 때 보여주면 도움이 돼요.</p>
+      <div id="weekList"></div>
+    </div>
+  </section>
+
+  <!-- 설정 -->
+  <section id="view-settings" class="hidden">
+    <div class="card">
+      <h2>내 정보</h2>
+      <p class="muted" style="margin:0;">모든 기록은 이 폰에만 저장되고, 어디로도 전송되지 않아요.</p>
+    </div>
+    <div class="card">
+      <h2>데이터 관리</h2>
+      <button class="btn secondary small" id="btnExport">백업 복사하기</button>
+      <button class="btn secondary small" id="btnImport">백업 가져오기</button>
+      <button class="btn danger small" id="btnReset">전체 삭제</button>
+    </div>
+  </section>
+</div>
+
+<nav class="tabbar">
+  <button data-tab="home" class="on"><span class="ic">📝</span>기록하기</button>
+  <button data-tab="records"><span class="ic">📅</span>지난 기록</button>
+  <button data-tab="week"><span class="ic">📊</span>주간 보기</button>
+  <button data-tab="settings"><span class="ic">⚙️</span>설정</button>
+</nav>
+
+<div id="toast"></div>
+<script>
+"use strict";
+/* ---------- 저장소 ---------- */
+var STORE_KEY = "dailyHealth.v1";
+var SYMPTOMS = ["어지러움","피로","두통","불안/긴장","소화불량","없음"];
+var ACTIVITIES = ["거의 안 움직임","집안에서 조금","스트레칭함","밖에 잠깐 나감"];
+var GOALS = ["기지개 켜기","어깨 돌리기 10번","목 좌우로 늘리기","의자 잡고 제자리 걷기 1분","햇볕 쬐기 10분","심호흡 3번"];
+var FACES = [
+  {v:1, e:"😞", t:"매우 나쁨"},
+  {v:2, e:"🙁", t:"나쁨"},
+  {v:3, e:"😐", t:"보통"},
+  {v:4, e:"🙂", t:"좋음"},
+  {v:5, e:"😄", t:"매우 좋음"}
+];
+
+function defaultState(){ return { entries:{} }; }
+function loadState(){
+  try{
+    var raw = localStorage.getItem(STORE_KEY);
+    if(!raw) return defaultState();
+    var s = JSON.parse(raw);
+    if(!s || typeof s.entries !== "object") return defaultState();
+    return s;
+  }catch(e){ return defaultState(); }
+}
+var state = loadState();
+function save(){
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(state)); }
+  catch(e){ toast("이 브라우저에 저장할 수 없어요."); }
+}
+function todayStr(d){
+  d = d || new Date();
+  var m = ("0"+(d.getMonth()+1)).slice(-2), day = ("0"+d.getDate()).slice(-2);
+  return d.getFullYear()+"-"+m+"-"+day;
+}
+function fmtDateKo(iso){
+  try{
+    var p = iso.split("-");
+    var d = new Date(+p[0], +p[1]-1, +p[2]);
+    var week = ["일","월","화","수","목","금","토"][d.getDay()];
+    return (+p[1])+"월 "+(+p[2])+"일 ("+week+")";
+  }catch(e){ return iso; }
+}
+function esc(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];
+  });
+}
+var toastTimer = null;
+function toast(msg){
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(function(){ t.classList.remove("show"); }, 2200);
+}
+
+/* ---------- 탭 ---------- */
+document.querySelectorAll("nav.tabbar button").forEach(function(b){
+  b.addEventListener("click", function(){
+    var tab = b.getAttribute("data-tab");
+    document.querySelectorAll("nav.tabbar button").forEach(function(x){
+      x.classList.toggle("on", x===b);
+    });
+    ["home","records","week","settings"].forEach(function(t){
+      document.getElementById("view-"+t).classList.toggle("hidden", t!==tab);
+    });
+    if(tab==="records") renderRecords();
+    if(tab==="week") renderWeek();
+    window.scrollTo(0,0);
+  });
+});
+function goTab(name){
+  document.querySelector('nav.tabbar button[data-tab="'+name+'"]').click();
+}
+
+/* ---------- 폼 상태 ---------- */
+var form = {
+  date: todayStr(),
+  med: null,          // 'yes' | 'no' | null
+  sys: "", dia: "", pulse: "",
+  sleepHours: 6,
+  sleepQ: 3,
+  symptoms: [],
+  mood: 3,
+  activity: "",
+  goals: [],
+  note: ""
+};
+function blankForm(date){
+  return { date:date, med:null, sys:"", dia:"", pulse:"", sleepHours:6,
+    sleepQ:3, symptoms:[], mood:3, activity:"", goals:[], note:"" };
+}
+function loadForm(date){
+  var e = state.entries[date];
+  form = e ? Object.assign(blankForm(date), JSON.parse(JSON.stringify(e))) : blankForm(date);
+  form.date = date;
+  renderForm();
+}
+function chipRow(el, items, selected, onToggle, single){
+  el.innerHTML = "";
+  items.forEach(function(c){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip" + (selected.indexOf(c)>=0 ? " on" : "");
+    b.textContent = c;
+    b.addEventListener("click", function(){ onToggle(c); });
+    el.appendChild(b);
+  });
+}
+function faceRow(el, value, onPick){
+  el.innerHTML = "";
+  FACES.forEach(function(f){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = f.v===value ? "on" : "";
+    b.innerHTML = f.e + "<small>"+f.t+"</small>";
+    b.addEventListener("click", function(){ onPick(f.v); });
+    el.appendChild(b);
+  });
+}
+function renderForm(){
+  document.getElementById("fDate").value = form.date;
+  document.querySelectorAll("#medSeg button").forEach(function(b){
+    b.classList.toggle("on", b.getAttribute("data-v")===form.med);
+  });
+  document.getElementById("fSys").value = form.sys;
+  document.getElementById("fDia").value = form.dia;
+  document.getElementById("fPulse").value = form.pulse;
+  document.getElementById("sleepVal").textContent = form.sleepHours;
+  faceRow(document.getElementById("sleepQ"), form.sleepQ, function(v){
+    form.sleepQ = v; renderForm();
+  });
+  var renderSym = function(){
+    chipRow(document.getElementById("symChips"), SYMPTOMS, form.symptoms, function(c){
+      if(c==="없음"){ form.symptoms = ["없음"]; }
+      else{
+        form.symptoms = form.symptoms.filter(function(x){ return x!=="없음"; });
+        var i = form.symptoms.indexOf(c);
+        if(i>=0) form.symptoms.splice(i,1); else form.symptoms.push(c);
+      }
+      renderSym();
+    });
+  };
+  renderSym();
+  faceRow(document.getElementById("moodFaces"), form.mood, function(v){
+    form.mood = v; renderForm();
+  });
+  var renderAct = function(){
+    chipRow(document.getElementById("actChips"), ACTIVITIES, form.activity?[form.activity]:[], function(c){
+      form.activity = (form.activity===c) ? "" : c;
+      renderAct();
+    }, true);
+  };
+  renderAct();
+  var renderGoals = function(){
+    chipRow(document.getElementById("goalChips"), GOALS, form.goals, function(c){
+      var i = form.goals.indexOf(c);
+      if(i>=0) form.goals.splice(i,1); else form.goals.push(c);
+      renderGoals();
+    });
+  };
+  renderGoals();
+  document.getElementById("fNote").value = form.note;
+  var hasAny = Object.keys(state.entries).length>0;
+  document.getElementById("introCard").classList.toggle("hidden", hasAny);
+}
+
+/* 폼 이벤트 */
+document.getElementById("fDate").addEventListener("change", function(){
+  loadForm(this.value || todayStr());
+});
+document.querySelectorAll("#medSeg button").forEach(function(b){
+  b.addEventListener("click", function(){
+    form.med = b.getAttribute("data-v");
+    document.querySelectorAll("#medSeg button").forEach(function(x){
+      x.classList.toggle("on", x===b);
+    });
+  });
+});
+document.getElementById("sleepMinus").addEventListener("click", function(){
+  form.sleepHours = Math.max(0, Math.round((form.sleepHours-0.5)*2)/2);
+  document.getElementById("sleepVal").textContent = form.sleepHours;
+});
+document.getElementById("sleepPlus").addEventListener("click", function(){
+  form.sleepHours = Math.min(16, Math.round((form.sleepHours+0.5)*2)/2);
+  document.getElementById("sleepVal").textContent = form.sleepHours;
+});
+document.getElementById("btnSave").addEventListener("click", function(){
+  form.sys = document.getElementById("fSys").value.trim();
+  form.dia = document.getElementById("fDia").value.trim();
+  form.pulse = document.getElementById("fPulse").value.trim();
+  form.note = document.getElementById("fNote").value.trim();
+  state.entries[form.date] = JSON.parse(JSON.stringify(form));
+  save();
+  document.getElementById("introCard").classList.add("hidden");
+  toast("저장됐어요. 내일도 1분만 기록해요.");
+});
+
+/* ---------- 지난 기록 ---------- */
+function entrySummary(e){
+  var parts = [];
+  if(e.med==="yes") parts.push("💊 복용");
+  else if(e.med==="no") parts.push("💊 미복용");
+  parts.push("수면 "+e.sleepHours+"시간");
+  if(e.symptoms && e.symptoms.length) parts.push(e.symptoms.join(", "));
+  return parts.join(" · ");
+}
+function renderRecords(){
+  var list = document.getElementById("recList");
+  var dates = Object.keys(state.entries).sort().reverse();
+  if(!dates.length){
+    list.innerHTML = '<div class="empty">아직 기록이 없어요.<br>오늘부터 1분씩 기록해 보세요.</div>';
+    return;
+  }
+  list.innerHTML = "";
+  dates.forEach(function(d){
+    var e = state.entries[d];
+    var div = document.createElement("div");
+    div.className = "rec";
+    div.innerHTML = '<div class="d">'+esc(fmtDateKo(d))+'</div>'
+      + '<div class="s">'+esc(entrySummary(e))+'</div>';
+    div.addEventListener("click", function(){
+      loadForm(d); goTab("home");
+      toast(fmtDateKo(d)+" 기록을 불러왔어요.");
+    });
+    list.appendChild(div);
+  });
+}
+
+/* ---------- 주간 보기 ---------- */
+function renderWeek(){
+  var list = document.getElementById("weekList");
+  list.innerHTML = "";
+  var any = false;
+  for(var i=0;i<7;i++){
+    var d = new Date(); d.setDate(d.getDate()-i);
+    var key = todayStr(d);
+    var e = state.entries[key];
+    var div = document.createElement("div");
+    div.className = "rec";
+    div.style.cursor = "default";
+    if(e){
+      any = true;
+      var medTxt = e.med==="yes" ? '<span class="med-ok">복용 ✓</span>'
+        : (e.med==="no" ? '<span class="med-no">미복용</span>' : "기록없음");
+      var w = Math.min(100, (e.sleepHours/10)*100);
+      div.innerHTML = '<div class="d">'+esc(fmtDateKo(key))+'</div>'
+        + '<div class="s">혈압약: '+medTxt+' · 수면 '+esc(e.sleepHours)+'시간 · 기분 '+esc(e.mood)+'/5</div>'
+        + '<div class="s">'+esc((e.symptoms||[]).join(", ")||"증상 없음")+'</div>'
+        + '<div class="bar"><div style="width:'+w+'%"></div></div>';
+    }else{
+      div.innerHTML = '<div class="d">'+esc(fmtDateKo(key))+'</div>'
+        + '<div class="s">기록 없음</div>';
+    }
+    list.appendChild(div);
+  }
+  if(!any){
+    var p = document.createElement("p");
+    p.className = "muted";
+    p.textContent = "아직 이번 주 기록이 없어요.";
+    list.appendChild(p);
+  }
+}
+
+/* ---------- 설정 ---------- */
+document.getElementById("btnExport").addEventListener("click", function(){
+  var data = JSON.stringify(state);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(data).then(
+      function(){ toast("백업이 복사됐어요. 안전한 곳에 붙여넣어 두세요."); },
+      function(){ prompt("백업 내용을 복사하세요:", data); });
+  }else{ prompt("백업 내용을 복사하세요:", data); }
+});
+document.getElementById("btnImport").addEventListener("click", function(){
+  var raw = prompt("백업 내용을 붙여넣으세요:");
+  if(!raw) return;
+  try{
+    var s = JSON.parse(raw);
+    if(!s || typeof s.entries !== "object") throw new Error("bad");
+    state = s; save(); loadForm(form.date);
+    toast("백업을 가져왔어요.");
+  }catch(e){ toast("백업 내용이 올바르지 않아요."); }
+});
+document.getElementById("btnReset").addEventListener("click", function(){
+  if(confirm("모든 기록을 삭제할까요? 되돌릴 수 없어요.")){
+    state = defaultState(); save();
+    loadForm(todayStr());
+    toast("삭제됐어요.");
+  }
+});
+
+/* ---------- 시작 ---------- */
+loadForm(todayStr());
+</script>
+</body>
+</html>
